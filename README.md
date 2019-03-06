@@ -59,6 +59,11 @@ Create a new EFU file with index of RootPath1, excluding 'Users' folder:
 
 <br>
 
+
+*Note that any include/exclude options provided during EFU creation should still be used when updating that EFU, to prevent the excluded items from being added back*
+
+<br>
+
 Update an existing EFU file - rescan all included folders:
 
 `EFUtool index.efu`
