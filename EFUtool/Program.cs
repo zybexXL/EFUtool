@@ -16,14 +16,20 @@ namespace EFUtool
     {
         const string Usage = @"
 Usage:
-    EFUtool <[path\]index.EFU> [<path1> ... <pathN>] [options]\n
+    EFUtool <[path\]index.EFU> [<root1> ... <rootN>] [options]\n
 
-Options (Multiple -i/-x/-d switches can be used):
+Options:
     -i <mask> : include files/dir mask
     -x <mask> : exclude files/dir mask
     -f        : filter EFU file (no folder update/scan)
     -s        : print EFU file statistics/info
-    -p        : alternative progress indication (for logging to file)
+    -p        : suppress progress indication (for logging to file)
+
+Notes:
+    o Multiple -i and -x switches can be used
+    o mask pattern can include * and ? for regular filemask syntax
+    o mask pattern can start with 'regex:' to use c# style regex matching
+    o -i and -x can also be used in statististics and filter modes
 
 Examples:
     Create a new EFU file with index of RootPath1 and RootPath2:
@@ -47,13 +53,13 @@ Examples:
     Filter out all except *.jpg files of RootPath1 from EFU file:
     > EFUtool index.efu -f -i RootPath1\*.jpg
 
-    Print stats for EFU file:
+    Print statistics for EFU file:
     > EFUtool index.efu -s
 
-    Print stats for *.tmp files on EFU file:
+    Print statistics for *.tmp files on EFU file:
     > EFUtool index.efu -s -i *.tmp
 
-    Print stats for RootPath1 except *.tmp files:
+    Print statistics for RootPath1 except *.tmp files:
     > EFUtool index.efu -s RootPath1 -x *.tmp
 ";
 
