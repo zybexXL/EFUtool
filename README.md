@@ -17,7 +17,7 @@ EFUtool | Update EFU index | 00:29:45 | **32x faster** than Everything GUI, **7x
 
 EFUtool can also take include/exclude filters to fine tune what is included in the index. This further allows removal of files/folders that do not need to be indexed, making the indexes smaller and faster to lookup by Everything.
 
-For volumes/shares with millions of files the Folder Indexing is much slower than EFU indexing ([see this thread](https://www.voidtools.com/forum/viewtopic.php?f=6&t=7545)). This issue may be resolved in a future version, which will bring Folder Indexing speed to the same level as EFU creation. EFUtool update-mode is still much faster, and thus worthwhile.
+For volumes/shares with millions of files Everything's Folder Indexing is much slower than EFU indexing ([see this thread](https://www.voidtools.com/forum/viewtopic.php?f=6&t=7545)). This issue may be resolved in a future version, bringing Folder Indexing speed to the same level as EFU creation. EFUtool update-mode is still much faster, and thus worthwhile.
 
 <br>
 
