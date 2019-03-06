@@ -6,7 +6,7 @@ EFUtool creates and updates EFU file indexes for loading into [Everything](https
 
 **Benchmarks**
 
-Scanning a group of network shares with about 60 TB in 12 million files, 500 thousand folders
+Scanning a group of network shares with about 60 TB in 12 million files, 500 thousand folders:
 
 Tool | Operation | Runtime | Comment
 :--- |:--- | --- |:---
