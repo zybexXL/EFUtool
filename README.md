@@ -8,7 +8,7 @@ EFUtool creates and updates EFU file indexes for loading into [Everything](https
 
 Tool | Operation | Runtime | Comment
 :--- |:--- | --- |:---
-Everything UI | Folder Index [re]scan | 15:48:04 |
+Everything UI | Folder Index Rescan | 15:48:04 |
 Everything CLI | Create EFU index | 03:40:06 | 4x faster than Folder Index
 EFUtool | Create EFU index | 03:41:21 | similar to Everything CLI
 EFUtool | Update EFU index | 00:29:45 | **32x faster** than Everything GUI, **7x faster** than Everything CLI
