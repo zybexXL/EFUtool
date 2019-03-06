@@ -23,7 +23,7 @@ For volumes/shares with millions of files Everything's Folder Indexing is much s
 
 **Download (x64 binary):** [Latest Release](https://github.com/zybexXL/EFUtool/releases/latest)
 
-*Requires .Net Framework 4.6.2 or above, which supports Long File Paths (longer than 260 chars)*
+*Requires .Net Framework 4.6.2 or above which supports Long File Paths (longer than 260 chars)*
 
 <br>
 
