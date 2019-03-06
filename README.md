@@ -1,10 +1,12 @@
 ## EFUtool - Fast EFU indexer tool for Everything
 
-EFUtool creates and updates EFU file indexes for loading into [Everything](https://www.voidtools.com) search tool. The main addition of EFUtool is a fast "update mode" which rescans a given volume/share for changes only, instead of doing a full scan everytime. This update mode is about 7x faster than the native EFU indexer in Everything, and greatly reduces the I/O load on the storage units.
+EFUtool creates and updates EFU file indexes for loading into [Everything](https://www.voidtools.com) search tool. The main addition of EFUtool is a fast "update mode" which rescans a given volume/share for changes only, instead of doing a full scan everytime. This update mode is about 7x faster than the native EFU indexer in Everything, when indexing network shares, and greatly reduces the I/O load on the storage units.
 
 <br>
 
-**Benchmarks on a group of shares with about 60 TB in 12 million files, 500 thousand folders**
+**Benchmarks**
+
+Scanning a group of network shares with about 60 TB in 12 million files, 500 thousand folders
 
 Tool | Operation | Runtime | Comment
 :--- |:--- | --- |:---
