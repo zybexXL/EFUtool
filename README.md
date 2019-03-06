@@ -42,7 +42,7 @@ For volumes/shares with millions of files Everything's Folder Indexing is much s
 
   - Multiple -i and -x switches can be used
   - mask pattern can include * and ? for regular filemask syntax
-  - mask pattern can start with 'regex:' to use c# style regex matching
+  - mask pattern can start with '**regex:**' to use c# style regex matching
   - -i and -x can also be used in statististics and filter modes
 
 <br>
@@ -52,6 +52,10 @@ For volumes/shares with millions of files Everything's Folder Indexing is much s
 Create a new EFU file with index of RootPath1 and RootPath2:
 
 `EFUtool index.efu RootPath1 RootPath2`
+
+Create a new EFU file with index of RootPath1, excluding 'Users' folder:
+
+`EFUtool index.efu RootPath1 RootPath2 -x \users\`
 
 <br>
 
@@ -73,11 +77,11 @@ Filter out RootPath2\ from EFU file:
 
 `EFUtool index.efu -f -x RootPath2\`
 
-Filter out all *.tmp files and TEMP folders from EFU file:
+Filter out all TMP files and TEMP folders from EFU file:
 
 `EFUtool index.efu -f -x *.tmp -x \TEMP\`
 
-Filter out all except *.jpg files of RootPath1 from EFU file:
+Filter out all except JPG files of RootPath1 from EFU file:
 
 `EFUtool index.efu -f -i RootPath1\*.jpg`
 
@@ -87,10 +91,10 @@ Print statistics for EFU file:
 
 `EFUtool index.efu -s`
 
-Print statistics for *.tmp files on EFU file:
+Print statistics for TMP files on EFU file:
 
 ```EFUtool index.efu -s -i *.tmp```
 
-Print statistics for RootPath1 except *.tmp files:
+Print statistics for RootPath1 except TMP files:
 
 ```EFUtool index.efu -s RootPath1 -x *.tmp```
