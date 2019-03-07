@@ -1,10 +1,12 @@
 ## EFUtool - Fast EFU indexer tool for Everything
 
-EFUtool creates and updates EFU file indexes for loading into [Everything](https://www.voidtools.com) search tool. The main addition of EFUtool is a fast "update mode" which rescans a given volume/share for changes only, instead of doing a full scan everytime. This update mode is about 7x faster than the native EFU indexer in Everything, and greatly reduces the I/O load on the storage units.
+EFUtool creates and updates EFU file indexes for loading into [Everything](https://www.voidtools.com) search tool. The main addition of EFUtool is a fast "update mode" which rescans a given volume/share for changes only, instead of doing a full scan everytime. This update mode is about 7x faster than the native EFU indexer in Everything, when indexing network shares, and greatly reduces the I/O load on the storage units.
 
 <br>
 
-**Benchmarks on a group of shares with about 60 TB in 12 million files, 500 thousand folders**
+**Benchmarks**
+
+Scanning a group of network shares with about 60 TB in 12 million files, 500 thousand folders:
 
 Tool | Operation | Runtime | Comment
 :--- |:--- | --- |:---
@@ -17,11 +19,13 @@ EFUtool | Update EFU index | 00:29:45 | **32x faster** than Everything GUI, **7x
 
 EFUtool can also take include/exclude filters to fine tune what is included in the index. This further allows removal of files/folders that do not need to be indexed, making the indexes smaller and faster to lookup by Everything.
 
-For volumes/shares with millions of files the Folder Indexing is much slower than EFU indexing ([see this thread](https://www.voidtools.com/forum/viewtopic.php?f=6&t=7545)). This issue may be resolved in a future version, which will bring Folder Indexing speed to the same level as EFU creation. EFUtool update-mode is still much faster, and thus worthwhile.
+For volumes/shares with millions of files Everything's Folder Indexing is much slower than EFU indexing ([see this thread](https://www.voidtools.com/forum/viewtopic.php?f=6&t=7545)). This issue may be resolved in a future version, bringing Folder Indexing speed to the same level as EFU creation. EFUtool update-mode is still much faster, and thus worthwhile.
 
 <br>
 
 **Download (x64 binary):** [Latest Release](https://github.com/zybexXL/EFUtool/releases/latest)
+
+*Requires .Net Framework 4.6.2 or above which supports Long File Paths (longer than 260 chars)*
 
 <br>
 
@@ -42,7 +46,7 @@ For volumes/shares with millions of files the Folder Indexing is much slower tha
 
   - Multiple -i and -x switches can be used
   - mask pattern can include * and ? for regular filemask syntax
-  - mask pattern can start with 'regex:' to use c# style regex matching
+  - mask pattern can start with '**regex:**' to use c# style regex matching
   - -i and -x can also be used in statististics and filter modes
 
 <br>
@@ -52,6 +56,15 @@ For volumes/shares with millions of files the Folder Indexing is much slower tha
 Create a new EFU file with index of RootPath1 and RootPath2:
 
 `EFUtool index.efu RootPath1 RootPath2`
+
+Create a new EFU file with index of RootPath1, excluding 'Users' folder:
+
+`EFUtool index.efu RootPath1 RootPath2 -x \users\`
+
+<br>
+
+
+*Note that any include/exclude options provided during EFU creation should still be used when updating that EFU, to prevent the excluded items from being added back*
 
 <br>
 
@@ -73,11 +86,11 @@ Filter out RootPath2\ from EFU file:
 
 `EFUtool index.efu -f -x RootPath2\`
 
-Filter out all *.tmp files and TEMP folders from EFU file:
+Filter out all TMP files and TEMP folders from EFU file:
 
 `EFUtool index.efu -f -x *.tmp -x \TEMP\`
 
-Filter out all except *.jpg files of RootPath1 from EFU file:
+Filter out all except JPG files of RootPath1 from EFU file:
 
 `EFUtool index.efu -f -i RootPath1\*.jpg`
 
@@ -87,10 +100,10 @@ Print statistics for EFU file:
 
 `EFUtool index.efu -s`
 
-Print statistics for *.tmp files on EFU file:
+Print statistics for TMP files on EFU file:
 
 ```EFUtool index.efu -s -i *.tmp```
 
-Print statistics for RootPath1 except *.tmp files:
+Print statistics for RootPath1 except TMP files:
 
 ```EFUtool index.efu -s RootPath1 -x *.tmp```
