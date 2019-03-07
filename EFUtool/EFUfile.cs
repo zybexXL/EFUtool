@@ -123,8 +123,16 @@ namespace EFUtool
 
             swEFU.Close();
             Console.WriteLine("Replacing EFU file");
-            try { File.Delete(EFUpath); } catch { }
-            File.Move(newEFU, EFUpath);
+            try
+            {
+                File.Delete(EFUpath);
+                File.Move(newEFU, EFUpath);
+            }
+            catch
+            {
+                Console.WriteLine("Error: failed to replace the existing EFU file, please check permissions or if the file in in use.");
+                return 3;
+            }
 
             Console.WriteLine($"\nContents:  {totalSize / 1024.0 / 1024.0:N2} MB in {fileCount:n0} files, {dirCount:n0} folders [{maxDepth} depth]");
             return 0;
@@ -165,8 +173,16 @@ namespace EFUtool
 
             swEFU.Close();
             Console.WriteLine("Replacing EFU file");
-            try { File.Delete(EFUpath); } catch { }
-            File.Move(newEFU, EFUpath);
+            try
+            {
+                File.Delete(EFUpath);
+                File.Move(newEFU, EFUpath);
+            }
+            catch
+            {
+                Console.WriteLine("Error: failed to replace the existing EFU file, please check permissions or if the file in in use.");
+                return 3;
+            }
 
             Console.WriteLine($"\nContents:  {totalSize / 1024.0 / 1024.0:N2} MB in {fileCount:n0} files, {dirCount:n0} folders [{maxDepth} depth]");
             return 0;
@@ -235,9 +251,16 @@ namespace EFUtool
 
             swEFU.Close();
             Console.WriteLine("Replacing EFU file");
-            try { File.Delete(EFUpath); } catch { }
-            File.Move(newEFU, EFUpath);
-
+            try
+            {
+                File.Delete(EFUpath);
+                File.Move(newEFU, EFUpath);
+            }
+            catch {
+                Console.WriteLine("Error: failed to replace the existing EFU file, please check permissions or if the file in in use.");
+                return 3;
+            }
+            
             Console.WriteLine($"\nContents:  {totalSize / 1024.0 / 1024.0,14:N2} MB in {fileCount,12:n0} files, {dirCount,10:n0} folders [{maxDepth} depth]");
             if (exclude.Count > 0 || include.Count > 0)
                 Console.WriteLine($"Excluded:  {exSize / 1024.0 / 1024.0,14:N2} MB in {exFileCount,12:n0} files, {exDirCount,10:n0} folders");
@@ -314,7 +337,7 @@ namespace EFUtool
                 Console.Write($"{log.PadRight(Console.BufferWidth - 1)}\r");
             }
 
-            int depth = dir.Path.Length - dir.Path.Substring(1).Replace("\\", "").Length;
+            int depth = dir.Path.Length < 3 ? 0 : dir.Path.Length - dir.Path.Substring(2).Replace("\\", "").Length;
             if (depth > maxDepth)
                 maxDepth = depth;
 
@@ -376,7 +399,7 @@ namespace EFUtool
                 {
                     dirCount++;
                     
-                    int depth = dir.Path.Length - dir.Path.Substring(1).Replace("\\", "").Length;
+                    int depth = dir.Path.Length < 3 ? 0 : dir.Path.Length - dir.Path.Substring(2).Replace("\\", "").Length;
                     if (depth > maxDepth)
                         maxDepth = depth;
 
@@ -557,7 +580,7 @@ namespace EFUtool
                         if (dir.isFolder)
                         {
                             dirCount++;
-                            int depth = dir.Path.Length - dir.Path.Substring(1).Replace("\\", "").Length;
+                            int depth = dir.Path.Length < 3 ? 0 : dir.Path.Length - dir.Path.Substring(2).Replace("\\", "").Length;
                             if (depth > maxDepth)
                                 maxDepth = depth;
                         }
