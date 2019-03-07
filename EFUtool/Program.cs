@@ -14,6 +14,8 @@ namespace EFUtool
 
     class Program
     {
+        static Version version = new Version(1, 0, 1);
+
         const string Usage = @"
 Usage:
     EFUtool <[path\]index.EFU> [<root1> ... <rootN>] [options]\n
@@ -74,7 +76,7 @@ Examples:
 
         static int Main(string[] args)
         {
-            Console.WriteLine("EFUtool v1.0 (c) 2019 Pedro Fonseca [pbfonseca@gmail.com]\n");
+            Console.WriteLine($"EFUtool v{version} (c) 2019 Pedro Fonseca [pbfonseca@gmail.com]\n");
             if (!ProcessCmdArgs(args))
                 return 1;
 
@@ -133,6 +135,12 @@ Examples:
 
         static bool ProcessCmdArgs(string[] args)
         {
+            if (args.Length == 0)
+            {
+                Console.WriteLine(Usage);
+                return false;
+            }
+
             for (int i = 0; i < args.Length; i++)
             {
                 string arg = args[i].ToLower();
