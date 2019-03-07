@@ -469,11 +469,11 @@ namespace EFUtool
                         if (isIncluded(dir.Path, true))     // filter
                         {
                             dirIndex[dir.Path.ToLower()] = dir;
-
+                            DirEntry parDir = null;
                             var parent = Path.GetDirectoryName(dir.Path);
-                            if (parent != null && dirIndex.TryGetValue(parent.ToLower(), out var parDir))
+                            if (parent != null && dirIndex.TryGetValue(parent.ToLower(), out parDir))
                                 parDir.Add(dir);
-                            if (parent == null)
+                            if (parDir == null)
                                 size += dir.Size;   // root folder size
 
                             dir.Size = 0;   // will be recalculated
