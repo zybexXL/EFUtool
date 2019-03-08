@@ -47,5 +47,20 @@ namespace EFUtool
             return false;
         }
 
+        public static string FormatSize(long bytes)
+        {
+            if (bytes < (1 << 10)) return $"{bytes} B";
+            if (bytes < (1 << 20)) return $"{bytes/1024.0:N2} KB";
+            bytes = bytes >> 10;
+            if (bytes < (1 << 20)) return $"{bytes / 1024.0:N2} MB";
+            bytes = bytes >> 10;
+            if (bytes < (1 << 20)) return $"{bytes / 1024.0:N2} GB";
+            bytes = bytes >> 10;
+            if (bytes < (1 << 20)) return $"{bytes / 1024.0:N2} TB";
+            bytes = bytes >> 10;
+            if (bytes < (1 << 20)) return $"{bytes / 1024.0:N2} PB";
+            bytes = bytes >> 10;
+            return $"{bytes / 1024.0:N2} EB";
+        }
     }
 }

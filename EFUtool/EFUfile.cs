@@ -134,7 +134,7 @@ namespace EFUtool
                 return 3;
             }
 
-            Console.WriteLine($"\nContents:  {totalSize / 1024.0 / 1024.0:N2} MB in {fileCount:n0} files, {dirCount:n0} folders [{maxDepth} depth]");
+            Console.WriteLine($"\nContents:  {Util.FormatSize(totalSize)} in {fileCount:n0} files, {dirCount:n0} folders [{maxDepth} depth]");
             return 0;
         }
 
@@ -184,7 +184,7 @@ namespace EFUtool
                 return 3;
             }
 
-            Console.WriteLine($"\nContents:  {totalSize / 1024.0 / 1024.0:N2} MB in {fileCount:n0} files, {dirCount:n0} folders [{maxDepth} depth]");
+            Console.WriteLine($"\nContents:  {Util.FormatSize(totalSize)} in {fileCount:n0} files, {dirCount:n0} folders [{maxDepth} depth]");
             return 0;
         }
 
@@ -198,20 +198,21 @@ namespace EFUtool
 
             getStats();
 
-            Console.WriteLine($"Contents:  {totalSize / 1024.0 / 1024.0,14:N2} MB  {fileCount,12:n0} files  {dirCount,10:n0} folders [{maxDepth} depth]");
-
+            Console.WriteLine($"Contents:  {Util.FormatSize(totalSize),12}  {fileCount,12:n0} files  {dirCount,10:n0} folders [{maxDepth} depth]");
             if (exclude.Count >0 || include.Count > 0)
-                Console.WriteLine($"Excluded:  {exSize / 1024.0 /1024.0,14:N2} MB  {exFileCount,12:n0} files  {exDirCount,10:n0} folders");
+                Console.WriteLine($"Excluded:  {Util.FormatSize(exSize),12}  {exFileCount,12:n0} files  {exDirCount,10:n0} folders");
 
-            Console.WriteLine("\nTop 10 file count by extension:\n-----------------------------------------------");
-            var ext = extensionCount.OrderByDescending(x => x.Value.Item1).Take(10);
-            foreach (var x in ext)
-                Console.WriteLine($"{x.Key,-8}   {x.Value.Item1,10:n0} files   {x.Value.Item2/1024.0/1024.0,14:N2} MB");
+            var extF = extensionCount.OrderByDescending(x => x.Value.Item1).Take(10);
+            var extS = extensionCount.OrderByDescending(x => x.Value.Item2).Take(10);
+            int width = Math.Max(extF.Max(x => x.Key.Length), extS.Max(x => x.Key.Length));
 
-            Console.WriteLine("\nTop 10 extensions by size:\n-----------------------------------------------");
-            ext = extensionCount.OrderByDescending(x => x.Value.Item2).Take(10);
-            foreach (var x in ext)
-                Console.WriteLine($"{x.Key,-8}   {x.Value.Item1,10:n0} files   {x.Value.Item2 / 1024.0 / 1024.0,14:N2} MB");
+            Console.WriteLine("\nTop 10 extensions by file count:\n" + new string('-', 34 + width));
+            foreach (var x in extF)
+                Console.WriteLine($"{x.Key.PadRight(width)}   {x.Value.Item1,10:n0} files   {Util.FormatSize(x.Value.Item2),12}");
+
+            Console.WriteLine("\nTop 10 extensions by size:\n" + new string('-', 34 + width));
+            foreach (var x in extS)
+                Console.WriteLine($"{x.Key.PadRight(width)}   {x.Value.Item1,10:n0} files   {Util.FormatSize(x.Value.Item2),12}");
 
             return 0;
         }
@@ -260,10 +261,10 @@ namespace EFUtool
                 Console.WriteLine("Error: failed to replace the existing EFU file, please check permissions or if the file in in use.");
                 return 3;
             }
-            
-            Console.WriteLine($"\nContents:  {totalSize / 1024.0 / 1024.0,14:N2} MB in {fileCount,12:n0} files, {dirCount,10:n0} folders [{maxDepth} depth]");
+
+            Console.WriteLine($"\nContents:  {Util.FormatSize(totalSize),12}  {fileCount,12:n0} files  {dirCount,10:n0} folders [{maxDepth} depth]");
             if (exclude.Count > 0 || include.Count > 0)
-                Console.WriteLine($"Excluded:  {exSize / 1024.0 / 1024.0,14:N2} MB in {exFileCount,12:n0} files, {exDirCount,10:n0} folders");
+                Console.WriteLine($"Excluded:  {Util.FormatSize(exSize),12}  {exFileCount,12:n0} files  {exDirCount,10:n0} folders");
 
             return 0;
         }
@@ -509,7 +510,7 @@ namespace EFUtool
                 }
             }
             //if (Program.ShowProgress) Console.Write("                    \r");
-            Console.WriteLine($"  Contents:  {size / 1024.0 / 1024.0:N2} MB in {files:n0} files, {dirs:n0} folders [{depth} depth]");
+            Console.WriteLine($"  Contents:  {Util.FormatSize(size)} in {files:n0} files, {dirs:n0} folders [{depth} depth]");
         }
 
         // copies entries that pass exclude filter from existing EFU to new EFU
