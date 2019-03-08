@@ -26,6 +26,7 @@ Options:
     -f        : filter EFU file (no folder update/scan)
     -s        : print EFU file statistics/info
     -p        : suppress progress indication (for logging to file)
+    -a        : save the used include/exclude args in EFU file
 
 Notes:
     o Multiple -i and -x switches can be used
@@ -73,6 +74,7 @@ Examples:
         static List<string> exclude = new List<string>();
         static ToolMode runmode = ToolMode.Default;
         internal static bool ShowProgress = true;
+        internal static bool saveArgs = false;
 
         static int Main(string[] args)
         {
@@ -80,16 +82,16 @@ Examples:
             if (!ProcessCmdArgs(args))
                 return 1;
 
-            EFUfile EFU = new EFUfile(efuPath, Roots, include, exclude);
-
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-
             if (runmode != ToolMode.Create && !File.Exists(efuPath))
             {
                 Console.WriteLine($"File not found: {efuPath}");
                     return 2;
             }
+
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
+            EFUfile EFU = new EFUfile(efuPath, Roots, include, exclude);
 
             int result = 0;
             try
@@ -97,11 +99,9 @@ Examples:
                 switch (runmode)
                 {
                     case ToolMode.Create:
-                        if (!EFU.CheckRoots()) return 2;
                         result = EFU.Create();
                         break;
                     case ToolMode.Update:
-                        if (!EFU.CheckRoots()) return 2;
                         result = EFU.Update();
                         break;
                     case ToolMode.Filter:
@@ -122,7 +122,7 @@ Examples:
             }
 
             sw.Stop();
-            if (runmode == ToolMode.Create || runmode == ToolMode.Update)
+            if (result != 2 && (runmode == ToolMode.Create || runmode == ToolMode.Update))
             {
                 string duration = sw.Elapsed.TotalMinutes > 1 ? $"{sw.Elapsed.ToString(@"h\:mm\:ss")}"
                     : sw.Elapsed.TotalSeconds > 1 ? $"{sw.Elapsed.TotalSeconds:0.0} seconds"
@@ -156,6 +156,7 @@ Examples:
                     else if (arg == "-f") runmode = ToolMode.Filter;
                     else if (arg == "-s") runmode = ToolMode.Stats;
                     else if (arg == "-p") ShowProgress = false;
+                    else if (arg == "-a") saveArgs = true;
                     else
                     {
                         Console.WriteLine(Usage);

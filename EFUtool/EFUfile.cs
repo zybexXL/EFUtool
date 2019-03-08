@@ -15,6 +15,8 @@ namespace EFUtool
         List<string> roots = new List<string>();
         List<string> include = new List<string>();
         List<string> exclude = new List<string>();
+        List<string> iargs = new List<string>();
+        List<string> xargs = new List<string>();
 
         int dirCount = 0;
         int fileCount = 0;
@@ -31,11 +33,13 @@ namespace EFUtool
         {
             EFUpath = path;
             roots = rootList;
+            iargs = included;
+            xargs = excluded;
             include = preparePatterns(included);
             exclude = preparePatterns(excluded);
         }
 
-        public bool CheckRoots()
+        bool CheckRoots()
         {
             for (int i = 0; i < roots.Count; i++)
             {
@@ -51,31 +55,30 @@ namespace EFUtool
                 entry.Changed = true;
                 entry.Exists = di.Exists;
                 dirIndex[path.ToLower()] = entry;
-                //if (!isUpdateMode)
-                //{
-                //    entry.Verified = true;
-                //    entry.Changed = true;
-                //}
             }
             return true;
         }
 
+        #region include/exclude pattern check
         // convert -i  and -x masks to regex patterns
+        string preparePattern(string mask)
+        {
+            string pattern = null;
+            if (mask.StartsWith("regex:"))
+                pattern = mask.Replace("regex:", "");
+            else
+                pattern = Regex.Escape(mask).Replace("\\*", ".*").Replace("\\?", "\\.");
+
+            if (pattern.StartsWith(".*") && pattern.Length > 2) pattern = pattern.Substring(2);
+            if (pattern.EndsWith(".*") && pattern.Length > 2) pattern = pattern.Substring(0, pattern.Length - 2);
+            return pattern;
+        }
+
         List<string> preparePatterns(List<string> masks)
         {
             List<string> patterns = new List<string>();
             foreach (var p in masks)
-            {
-                string pattern = null;
-                if (p.StartsWith("regex:"))
-                    pattern = p.Replace("regex:", "");
-                else
-                    pattern = Regex.Escape(p).Replace("\\*", ".*").Replace("\\?", "\\.");
-
-                if (pattern.StartsWith(".*") && pattern.Length > 2) pattern = pattern.Substring(2);
-                if (pattern.EndsWith(".*") && pattern.Length > 2) pattern = pattern.Substring(0,pattern.Length-2);
-                patterns.Add(pattern);
-            }
+                patterns.Add(preparePattern(p));
             return patterns;
         }
 
@@ -86,7 +89,7 @@ namespace EFUtool
 
             foreach (var x in exclude)
             {
-                if (isFolder && !x.Contains("\\"))      // excluding folders requires mask to contain a slash
+                if (isFolder && !x.Contains(@"\\"))      // excluding folders requires mask to contain a slash
                     continue;
                 if (Regex.IsMatch(path, x, RegexOptions.IgnoreCase))
                     return false;
@@ -96,8 +99,8 @@ namespace EFUtool
             bool defaultIncludeFolders = true;
             foreach (var x in include)
             {
-                if (x.Contains("\\")) defaultIncludeFolders = false;
-                if (isFolder && !x.Contains("\\"))      // including folders requires mask to contain a slash
+                if (x.Contains(@"\\")) defaultIncludeFolders = false;
+                if (isFolder && !x.Contains(@"\\"))      // including folders requires mask to contain a slash
                     continue;
                 if (Regex.IsMatch(path, x, RegexOptions.IgnoreCase))
                     return true;
@@ -105,15 +108,95 @@ namespace EFUtool
             return isFolder && defaultIncludeFolders;      // folders are included by default, unless excluded above
         }
 
+        #endregion
+
+        #region save/load args to EFU file
+        public void SaveEFUArgs(StreamWriter efu, DateTime creationDate)
+        {
+            string args = Util.Base64Encode(string.Join("\r", iargs) + "\n" + string.Join("\r", xargs));
+            int attr = 1 + 2 + 4 + 64 + 256; // hidden, system, readonly, Device, Offline
+            efu.WriteLine($"\"EFU:\\Args\\{args}\",0,{DateTime.Now.ToFileTime()},{creationDate.ToFileTime()},{attr}");
+        }
+
+        public bool ParseSavedArgs(string line, bool load, out DateTime cdate)
+        {
+            cdate = DateTime.Now;
+            Match m = Regex.Match(line, @"^""EFU:\\Args\\([^""]+)"",\d+,(\d+),(\d+),(\d+)$", RegexOptions.IgnoreCase);
+            if (!m.Success) return false;
+            if (int.Parse(m.Groups[4].Value) != 1 + 2 + 4 + 64 + 256) return false;
+
+            string args = Util.Base64Decode(m.Groups[1].Value);
+            if (!args.Contains("\n")) return false;
+
+            DateTime mdate = DateTime.FromFileTime(long.Parse(m.Groups[2].Value));
+            cdate = DateTime.FromFileTime(long.Parse(m.Groups[3].Value));
+
+            string[] includes = args.Split('\n')[0].Split(new char[] { '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] excludes = args.Split('\n')[1].Split(new char[] { '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            args = "";
+            foreach(var i in includes) {
+                args += $"-i {i} ";
+                if (!iargs.Contains(i, StringComparer.InvariantCultureIgnoreCase)) iargs.Add(i);
+                if (load)
+                {
+                    string pattern = preparePattern(i);
+                    if (!include.Contains(pattern))
+                        include.Add(pattern);
+                }
+            }
+            foreach (var x in excludes)
+            {
+                args += $"-x {x} ";
+                if (!xargs.Contains(x, StringComparer.InvariantCultureIgnoreCase)) xargs.Add(x);
+                if (load)
+                {
+                    string pattern = preparePattern(x);
+                    if (!exclude.Contains(pattern))
+                        exclude.Add(pattern);
+                }
+            }
+
+            if (string.IsNullOrEmpty(args)) args = "(none)";
+            //string ignored = load ? "" : " [ignored]";
+            Console.WriteLine($"  Created on {cdate}, last modified on {mdate}");
+            Console.WriteLine($"  Stored args: {args}");
+
+            return true;
+        }
+
+        public bool RestoreSavedArgs(bool load, out DateTime created)
+        {
+            created = DateTime.Now;
+            try
+            {
+                using (StreamReader sr = new StreamReader(EFUpath, Encoding.UTF8, false))
+                {
+                    sr.ReadLine();  // header
+                    string line = sr.ReadLine();  // args
+                    return ParseSavedArgs(line, load, out created);
+                }
+            }
+            catch { }
+            return false;
+        }
+
+        #endregion
+
+        #region public entrypoints
+
         // create new EFU
         public int Create()
         {
+            if (!CheckRoots()) return 2;
+
             Console.WriteLine($"Creating EFU file: {Path.GetFileName(EFUpath)}\n");
 
             // create tmp EFU file
             string newEFU = Path.ChangeExtension(EFUpath, ".tmp");
             StreamWriter swEFU = new StreamWriter(newEFU, false);
             swEFU.WriteLine("Filename,Size,Date Modified,Date Created,Attributes");
+            if (Program.saveArgs)
+                SaveEFUArgs(swEFU, DateTime.Now);
 
             Console.WriteLine($"Scanning and indexing folders");
             EFUScanFolder(swEFU);
@@ -141,9 +224,12 @@ namespace EFUtool
         // update existing EFU
         public int Update()
         {
-            Console.WriteLine($"Updating EFU file: {Path.GetFileName(EFUpath)}\n");
+            if (!CheckRoots()) return 2;
 
-            Console.WriteLine($"Scanning current EFU index");
+            Console.WriteLine($"Updating EFU file: {Path.GetFileName(EFUpath)}");
+            bool saveArgs = RestoreSavedArgs(Program.saveArgs, out DateTime created);
+
+            Console.WriteLine($"\nScanning current EFU index");
             EFULoad();
 
             Console.WriteLine($"Finding changed folders");
@@ -153,6 +239,8 @@ namespace EFUtool
             string newEFU = Path.ChangeExtension(EFUpath, ".tmp");
             StreamWriter swEFU = new StreamWriter(newEFU, false, Encoding.UTF8, 65536);
             swEFU.WriteLine("Filename,Size,Date Modified,Date Created,Attributes");
+            if (saveArgs || Program.saveArgs)
+                SaveEFUArgs(swEFU, created);
 
             Console.WriteLine($"Reindexing unchanged folders");
             EFUReindexUnchangedEntries(swEFU);
@@ -191,7 +279,9 @@ namespace EFUtool
         // print EFU stats
         public int Statistics()
         {
-            Console.WriteLine($"Compiling EFU statistics: {Path.GetFileName(EFUpath)}\n");
+            Console.WriteLine($"Compiling EFU statistics: {Path.GetFileName(EFUpath)}");
+            RestoreSavedArgs(false, out DateTime created);
+            Console.WriteLine();
 
             if (roots.Count > 0)
                 include.AddRange(preparePatterns(roots));       // treat Roots as includes
@@ -202,30 +292,33 @@ namespace EFUtool
             if (exclude.Count >0 || include.Count > 0)
                 Console.WriteLine($"Excluded:  {Util.FormatSize(exSize),12}  {exFileCount,12:n0} files  {exDirCount,10:n0} folders");
 
-            var extF = extensionCount.OrderByDescending(x => x.Value.Item1).Take(10);
-            var extS = extensionCount.OrderByDescending(x => x.Value.Item2).Take(10);
-            int width = Math.Max(extF.Max(x => x.Key.Length), extS.Max(x => x.Key.Length));
+            if (extensionCount.Count > 0)
+            {
+                var extF = extensionCount.OrderByDescending(x => x.Value.Item1).Take(10);
+                var extS = extensionCount.OrderByDescending(x => x.Value.Item2).Take(10);
+                int width = Math.Max(extF.Max(x => x.Key.Length), extS.Max(x => x.Key.Length));
 
-            Console.WriteLine("\nTop 10 extensions by file count:\n" + new string('-', 34 + width));
-            foreach (var x in extF)
-                Console.WriteLine($"{x.Key.PadRight(width)}   {x.Value.Item1,10:n0} files   {Util.FormatSize(x.Value.Item2),12}");
+                Console.WriteLine("\nTop 10 extensions by file count:\n" + new string('-', 34 + width));
+                foreach (var x in extF)
+                    Console.WriteLine($"{x.Key.PadRight(width)}   {x.Value.Item1,10:n0} files   {Util.FormatSize(x.Value.Item2),12}");
 
-            Console.WriteLine("\nTop 10 extensions by size:\n" + new string('-', 34 + width));
-            foreach (var x in extS)
-                Console.WriteLine($"{x.Key.PadRight(width)}   {x.Value.Item1,10:n0} files   {Util.FormatSize(x.Value.Item2),12}");
-
+                Console.WriteLine("\nTop 10 extensions by size:\n" + new string('-', 34 + width));
+                foreach (var x in extS)
+                    Console.WriteLine($"{x.Key.PadRight(width)}   {x.Value.Item1,10:n0} files   {Util.FormatSize(x.Value.Item2),12}");
+            }
             return 0;
         }
 
         // remove entries from existing EFU
         public int Filter()
         {
+            Console.WriteLine($"Filtering EFU file: {Path.GetFileName(EFUpath)}");
+            bool saveArgs = RestoreSavedArgs(false, out DateTime created);
+
             if (roots.Count > 0)
                 exclude.AddRange(preparePatterns(roots));       // treat Roots as exclude
 
-            Console.WriteLine($"Filtering EFU file: {Path.GetFileName(EFUpath)}\n");
-
-            Console.WriteLine($"Scanning current EFU index");
+            Console.WriteLine($"\nScanning current EFU index");
             EFULoad();
 
             foreach (var dir in dirIndex.Values)
@@ -235,6 +328,8 @@ namespace EFUtool
             string newEFU = Path.ChangeExtension(EFUpath, ".tmp");
             StreamWriter swEFU = new StreamWriter(newEFU, false, Encoding.UTF8, 65536);
             swEFU.WriteLine("Filename,Size,Date Modified,Date Created,Attributes");
+            if (saveArgs || Program.saveArgs)
+                SaveEFUArgs(swEFU, created);
 
             Console.WriteLine($"Applying filter");
             EFUFilter(swEFU);
@@ -268,6 +363,8 @@ namespace EFUtool
 
             return 0;
         }
+
+        #endregion
 
         // checks each known folder timestamp to determine if it has changed
         void EFUFindChangedFolders()
@@ -345,7 +442,6 @@ namespace EFUtool
             FileData[] contents = FastDirectory.GetFiles(dir.Path, "*.*", SearchOption.TopDirectoryOnly);
             var subs = contents.Where(e => e.Attributes.HasFlag(FileAttributes.Directory)).ToArray();
             var files = contents.Where(e => !e.Attributes.HasFlag(FileAttributes.Directory)).ToArray();
-            fileCount += files.Length;
 
             foreach (var f in files)
             {
@@ -354,6 +450,7 @@ namespace EFUtool
                     newEFU.WriteLine($"\"{f.FullPath}\",{f.Size},{f.LastWriteTime.ToFileTime()},{f.CreationTime.ToFileTime()},{(int)f.Attributes}");
                     dir.Size += f.Size;
                     totalSize += f.Size;
+                    fileCount++;
                 }
                 else
                 {
@@ -625,7 +722,7 @@ namespace EFUtool
                 if (dirsOnly && !attr.HasFlag(FileAttributes.Directory))
                     return null;
 
-                string path = string.Join(",", items.Take(items.Length - 4).ToList()).Trim('\"');
+                string path = items.Length == 5 ? items[0].Trim('\"') : string.Join(",", items.Take(items.Length - 4).ToList()).Trim('\"');
                 long size = long.Parse(items[items.Length - 4]);
                 DateTime mdate = DateTime.FromFileTime(long.Parse(items[items.Length - 3]));
                 DateTime cdate = DateTime.FromFileTime(long.Parse(items[items.Length - 2]));
