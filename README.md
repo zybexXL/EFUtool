@@ -21,6 +21,8 @@ EFUtool can also take include/exclude filters to fine tune what is included in t
 
 For volumes/shares with millions of files Everything's Folder Indexing is much slower than EFU indexing ([see this thread](https://www.voidtools.com/forum/viewtopic.php?f=6&t=7545)). This issue may be resolved in a future version, bringing Folder Indexing speed to the same level as EFU creation. EFUtool update-mode is still much faster, and thus worthwhile.
 
+***UPDATE:*** David Carpenter from VoidTools found that the slower "Folder Index Rescan" is caused by Everything running it in a lower priority thread. To bring it in line with the "Create EFU Index" runtimes, just set **folder_update_thread_mode_background=0** in Everything's config file.*
+
 <br>
 
 **Download (x64 binary):** [Latest Release](https://github.com/zybexXL/EFUtool/releases/latest)
@@ -42,13 +44,15 @@ For volumes/shares with millions of files Everything's Folder Indexing is much s
     -f        : filter EFU file (no folder update/scan)
     -s        : print EFU file statistics/info
     -p        : suppress progress indication (for logging to file)
+    -a        : save the used include/exclude args in EFU file
 ```
 
   - Multiple -i and -x switches can be used
   - mask pattern can include * and ? for regular filemask syntax
   - mask pattern can start with '**regex:**' to use c# style regex matching
   - -i and -x can also be used in statististics and filter modes
-
+  - -a option allows you to update the EFU using the saved args
+  
 <br>
 
 **Examples**
