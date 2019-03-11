@@ -63,46 +63,66 @@ namespace EFUtool
         // convert -i  and -x masks to regex patterns
         string preparePattern(string mask)
         {
-            string pattern = null;
-            if (mask.StartsWith("regex:"))
-                pattern = mask.Replace("regex:", "");
+            // simple text
+            if (!mask.ToLower().StartsWith("regex:"))
+            {
+                mask = mask.Trim('*');
+                if (mask.IndexOfAny(new char[] { '*', '?' }) < 0)
+                    return mask;
+                // convert to regex
+                mask = Regex.Escape(mask).Replace("\\*", ".*").Replace("\\?", "\\.");
+            }
             else
-                pattern = Regex.Escape(mask).Replace("\\*", ".*").Replace("\\?", "\\.");
+                mask = Regex.Replace(mask, "^regex:", "", RegexOptions.IgnoreCase);
 
-            if (pattern.StartsWith(".*") && pattern.Length > 2) pattern = pattern.Substring(2);
-            if (pattern.EndsWith(".*") && pattern.Length > 2) pattern = pattern.Substring(0, pattern.Length - 2);
-            return pattern;
+            //regex
+            if (string.IsNullOrEmpty(mask)) return "";
+            mask = Regex.Replace(mask, "^\\.\\*|\\.\\*$", "");
+            return $"REGEX:{mask}";
         }
 
         List<string> preparePatterns(List<string> masks)
         {
             List<string> patterns = new List<string>();
-            foreach (var p in masks)
-                patterns.Add(preparePattern(p));
+            foreach (var m in masks)
+            {
+                string pattern = preparePattern(m);
+                if (!string.IsNullOrEmpty(pattern))
+                    patterns.Add(pattern);
+            }
             return patterns;
         }
 
         bool isIncluded(string path, bool isFolder)
         {
+            if (path.StartsWith("EFU:\\")) return true;
             if (include.Count == 0 && exclude.Count == 0)
                 return true;
 
             foreach (var x in exclude)
             {
-                if (isFolder && !x.Contains(@"\\"))      // excluding folders requires mask to contain a slash
+                bool isRegex = x.StartsWith("REGEX:");
+                string slash = isRegex ? @"\\" : @"\";
+                if (isFolder && !x.Contains(slash))      // excluding folders requires mask to contain a slash
                     continue;
-                if (Regex.IsMatch(path, x, RegexOptions.IgnoreCase))
+                if (isRegex && Regex.IsMatch(path.Replace("REGEX:", ""), x, RegexOptions.IgnoreCase))
+                    return false;
+                else if (!isRegex && path.Contains(x))
                     return false;
             }
 
             if (include.Count == 0) return true;
             bool defaultIncludeFolders = true;
-            foreach (var x in include)
+            foreach (var i in include)
             {
-                if (x.Contains(@"\\")) defaultIncludeFolders = false;
-                if (isFolder && !x.Contains(@"\\"))      // including folders requires mask to contain a slash
+                bool isRegex = i.StartsWith("REGEX:");
+                string slash = isRegex ? @"\\" : @"\";
+                if (i.Contains(slash)) defaultIncludeFolders = false;
+                if (isFolder && !i.Contains(@"\\"))      // including folders requires mask to contain a slash
                     continue;
-                if (Regex.IsMatch(path, x, RegexOptions.IgnoreCase))
+                if (isRegex && Regex.IsMatch(path.Replace("REGEX:", ""), i, RegexOptions.IgnoreCase))
+                    return true;
+                else if (!isRegex && path.Contains(i))
                     return true;
             }
             return isFolder && defaultIncludeFolders;      // folders are included by default, unless excluded above
@@ -140,7 +160,7 @@ namespace EFUtool
                 if (load)
                 {
                     string pattern = preparePattern(i);
-                    if (!include.Contains(pattern))
+                    if (!string.IsNullOrEmpty(pattern) && !include.Contains(pattern))
                         include.Add(pattern);
                 }
             }
@@ -151,7 +171,7 @@ namespace EFUtool
                 if (load)
                 {
                     string pattern = preparePattern(x);
-                    if (!exclude.Contains(pattern))
+                    if (!string.IsNullOrEmpty(pattern) && !exclude.Contains(pattern))
                         exclude.Add(pattern);
                 }
             }
@@ -402,6 +422,10 @@ namespace EFUtool
                     entry.Exists = true;
                     if (di.LastWriteTime != entry.Modified)
                     {
+                        entry.Modified = di.LastWriteTime;
+                        entry.Created = di.CreationTime;
+                        entry.Attributes = di.Attributes;
+                        entry.Size = 0;
                         entry.Changed = true;
                         changed++;
                     }
