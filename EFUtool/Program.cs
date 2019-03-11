@@ -16,7 +16,9 @@ namespace EFUtool
     {
         static Version version = new Version(1, 0, 3);
 
-        const string Usage = @"
+        const string Usage = @"Source Code: https://github.com/zybexXL/EFUtool
+    Updates: https://github.com/zybexXL/EFUtool/releases
+
 Usage:
     EFUtool <[path\]index.EFU> [<root1> ... <rootN>] [options]\n
 
@@ -63,8 +65,9 @@ Examples:
     > EFUtool index.efu -s -i *.tmp
 
     Print statistics for RootPath1 except *.tmp files:
-    > EFUtool index.efu -s RootPath1 -x *.tmp
-";
+    > EFUtool index.efu -s RootPath1 -x *.tmp";
+
+
 
         static Dictionary<string, DirEntry> dirIndex = new Dictionary<string, DirEntry>();
 
