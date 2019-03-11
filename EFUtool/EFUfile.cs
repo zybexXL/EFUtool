@@ -227,7 +227,7 @@ namespace EFUtool
             if (!CheckRoots()) return 2;
 
             Console.WriteLine($"Updating EFU file: {Path.GetFileName(EFUpath)}");
-            bool saveArgs = RestoreSavedArgs(Program.saveArgs, out DateTime created);
+            bool saveArgs = RestoreSavedArgs(true, out DateTime created);
 
             Console.WriteLine($"\nScanning current EFU index");
             EFULoad();

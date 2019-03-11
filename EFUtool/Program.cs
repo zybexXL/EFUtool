@@ -14,7 +14,7 @@ namespace EFUtool
 
     class Program
     {
-        static Version version = new Version(1, 0, 2);
+        static Version version = new Version(1, 0, 3);
 
         const string Usage = @"
 Usage:
