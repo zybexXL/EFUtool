@@ -107,7 +107,7 @@ namespace EFUtool
                     continue;
                 if (isRegex && Regex.IsMatch(path.Replace("REGEX:", ""), x, RegexOptions.IgnoreCase))
                     return false;
-                else if (!isRegex && path.Contains(x))
+                else if (!isRegex && path.IndexOf(x, StringComparison.InvariantCultureIgnoreCase) > -1)
                     return false;
             }
 
@@ -122,7 +122,7 @@ namespace EFUtool
                     continue;
                 if (isRegex && Regex.IsMatch(path.Replace("REGEX:", ""), i, RegexOptions.IgnoreCase))
                     return true;
-                else if (!isRegex && path.Contains(i))
+                else if (!isRegex && path.IndexOf(i, StringComparison.InvariantCultureIgnoreCase) > -1)
                     return true;
             }
             return isFolder && defaultIncludeFolders;      // folders are included by default, unless excluded above
@@ -160,7 +160,7 @@ namespace EFUtool
                 if (load)
                 {
                     string pattern = preparePattern(i);
-                    if (!string.IsNullOrEmpty(pattern) && !include.Contains(pattern))
+                    if (!string.IsNullOrEmpty(pattern) && !include.Contains(pattern, StringComparer.InvariantCultureIgnoreCase))
                         include.Add(pattern);
                 }
             }
@@ -171,7 +171,7 @@ namespace EFUtool
                 if (load)
                 {
                     string pattern = preparePattern(x);
-                    if (!string.IsNullOrEmpty(pattern) && !exclude.Contains(pattern))
+                    if (!string.IsNullOrEmpty(pattern) && !exclude.Contains(pattern, StringComparer.InvariantCultureIgnoreCase))
                         exclude.Add(pattern);
                 }
             }
