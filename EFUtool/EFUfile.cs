@@ -95,7 +95,7 @@ namespace EFUtool
 
         bool isIncluded(string path, bool isFolder)
         {
-            if (path.StartsWith("EFU:\\")) return true;
+            if (path.StartsWith("EFU:\\")) return false;
             if (include.Count == 0 && exclude.Count == 0)
                 return true;
 
@@ -494,7 +494,7 @@ namespace EFUtool
                     dir.Add(sub);
                     dirIndex[s.FullPath.ToLower()] = sub;
                     EFUScanFolderRecursive(newEFU, sub);
-                    dir.Size += sub.Size;
+                    //dir.Size += sub.Size;
                 }
                 else
                     exDirCount++;
