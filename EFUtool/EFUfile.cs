@@ -409,7 +409,7 @@ namespace EFUtool
                 }
 
                 entry.Verified = true;
-                if (prev != null && !prev.Exists && entry.Path.StartsWith(prev.Path))      // if parent doesn't exist, this one doesn't either
+                if (prev != null && !prev.Exists && Path.GetDirectoryName(entry.Path) == prev.Path)      // if parent doesn't exist, this one doesn't either
                 {
                     missing++;
                     continue;
@@ -420,7 +420,7 @@ namespace EFUtool
                 if (di.Exists)
                 {
                     entry.Exists = true;
-                    if (di.LastWriteTime != entry.Modified || di.Attributes.HasFlag(FileAttributes.ReparsePoint) || entry.Parent == null)
+                    if (di.LastWriteTime != entry.Modified || di.Attributes != entry.Attributes || di.Attributes.HasFlag(FileAttributes.ReparsePoint) || entry.Parent == null)
                     {
                         entry.Modified = di.LastWriteTime;
                         entry.Created = di.CreationTime;

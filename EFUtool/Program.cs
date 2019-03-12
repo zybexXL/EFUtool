@@ -14,7 +14,7 @@ namespace EFUtool
 
     class Program
     {
-        static Version version = new Version(1, 0, 4);
+        static Version version = new Version(1, 0, 5);
 
         const string Usage = @"Source Code: https://github.com/zybexXL/EFUtool
     Updates: https://github.com/zybexXL/EFUtool/releases
