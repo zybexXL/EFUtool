@@ -420,7 +420,7 @@ namespace EFUtool
                 if (di.Exists)
                 {
                     entry.Exists = true;
-                    if (di.LastWriteTime != entry.Modified)
+                    if (di.LastWriteTime != entry.Modified || di.Attributes.HasFlag(FileAttributes.ReparsePoint) || entry.Parent == null)
                     {
                         entry.Modified = di.LastWriteTime;
                         entry.Created = di.CreationTime;
