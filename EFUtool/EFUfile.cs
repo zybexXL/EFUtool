@@ -118,7 +118,7 @@ namespace EFUtool
                 bool isRegex = i.StartsWith("REGEX:");
                 string slash = isRegex ? @"\\" : @"\";
                 if (i.Contains(slash)) defaultIncludeFolders = false;
-                if (isFolder && !i.Contains(@"\\"))      // including folders requires mask to contain a slash
+                if (isFolder && !i.Contains(slash))      // including folders requires mask to contain a slash
                     continue;
                 if (isRegex && Regex.IsMatch(path.Replace("REGEX:", ""), i, RegexOptions.IgnoreCase))
                     return true;
