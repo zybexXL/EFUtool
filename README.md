@@ -21,7 +21,7 @@ EFUtool can also take include/exclude filters to fine tune what is included in t
 
 For volumes/shares with millions of files Everything's Folder Indexing is much slower than EFU indexing ([see this thread](https://www.voidtools.com/forum/viewtopic.php?f=6&t=7545)). This issue may be resolved in a future version, bringing Folder Indexing speed to the same level as EFU creation. EFUtool update-mode is still much faster, and thus worthwhile.
 
-***UPDATE:*** David Carpenter from VoidTools found that the slower "Folder Index Rescan" is caused by Everything running it in a lower priority thread. To bring it in line with the "Create EFU Index" runtimes, just set **folder_update_thread_mode_background=0** in Everything's config file.*
+***UPDATE:** David Carpenter from VoidTools found that the slower "Folder Index Rescan" is caused by Everything running it in a lower priority thread. To bring it in line with the "Create EFU Index" runtimes, just set **folder_update_thread_mode_background=0** in Everything's config file.*
 
 <br>
 
