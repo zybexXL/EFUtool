@@ -213,7 +213,7 @@ namespace EFUtool
 
             // create tmp EFU file
             string newEFU = Path.ChangeExtension(EFUpath, ".tmp");
-            StreamWriter swEFU = new StreamWriter(newEFU, false);
+            StreamWriter swEFU = new StreamWriter(newEFU, false, Encoding.UTF8, 65536);
             swEFU.WriteLine("Filename,Size,Date Modified,Date Created,Attributes");
             if (Program.saveArgs)
                 SaveEFUArgs(swEFU, DateTime.Now);
@@ -267,14 +267,6 @@ namespace EFUtool
 
             Console.WriteLine($"Scanning new/modified folders");
             EFUScanFolder(swEFU);
-
-            Console.WriteLine("Updating directory sizes");
-            var roots = dirIndex.Values.Where(d => d.Parent == null).ToList();
-            foreach (var dir in roots)
-            {
-                if (dir.Exists)
-                    getSubSize(dir);
-            }
 
             Console.WriteLine($"Finalizing EFU index");
             EFUFinalize(swEFU);
@@ -445,6 +437,14 @@ namespace EFUtool
                 EFUScanFolderRecursive(newEFU, dir);
 
             if (Program.ShowProgress) Console.Write($"\r{new string(' ', Console.BufferWidth-1)}\r");
+
+            Console.WriteLine("Updating directory sizes");
+            var roots = dirIndex.Values.Where(d => d.Parent == null).ToList();
+            foreach (var dir in roots)
+            {
+                if (dir.Exists)
+                    getSubSize(dir);
+            }
         }
 
         // recursive folder scan/indexing (new/modified folders)
