@@ -44,6 +44,9 @@ namespace EFUtool
             for (int i = 0; i < roots.Count; i++)
             {
                 string path = Path.GetFullPath(roots[i]);                // warning: case is not corrected
+                if (!path.EndsWith(":\\"))
+                    path = path.TrimEnd('\\');
+
                 DirectoryInfo di = new DirectoryInfo(path);
                 if (!di.Exists)
                 {
@@ -463,7 +466,7 @@ namespace EFUtool
             if (depth > maxDepth)
                 maxDepth = depth;
 
-            FileData[] contents = FastDirectory.GetFiles(dir.Path, "*.*", SearchOption.TopDirectoryOnly);
+            FileData[] contents = FastDirectory.GetFiles(dir.Path, "*", SearchOption.TopDirectoryOnly);
             var subs = contents.Where(e => e.Attributes.HasFlag(FileAttributes.Directory)).ToArray();
             var files = contents.Where(e => !e.Attributes.HasFlag(FileAttributes.Directory)).ToArray();
 
