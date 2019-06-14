@@ -51,10 +51,10 @@ namespace EFUtool
         {
             Parent = parent;
             Path = dir.FullPath;
-            Size = dir.Size;
             Modified = dir.LastWriteTime;
             Created = dir.CreationTime;
             Attributes = dir.Attributes;
+            Size = isFolder ? 0 : dir.Size;
             Exists = true;
             Verified = true;
         }
