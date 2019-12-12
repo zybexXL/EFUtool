@@ -470,6 +470,9 @@ namespace EFUtool
             var subs = contents.Where(e => e.Attributes.HasFlag(FileAttributes.Directory)).ToArray();
             var files = contents.Where(e => !e.Attributes.HasFlag(FileAttributes.Directory)).ToArray();
 
+            if (Program.depthLimit > 0 && depth >= Program.depthLimit)
+                subs = new FileData[] { };
+
             foreach (var f in files)
             {
                 if (isIncluded(f.FullPath, false))

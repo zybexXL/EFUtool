@@ -14,7 +14,7 @@ namespace EFUtool
 
     class Program
     {
-        static Version version = new Version(1, 0, 8);
+        static Version version = new Version(1, 0, 9);
 
         const string Usage = @"Source Code: https://github.com/zybexXL/EFUtool
     Updates: https://github.com/zybexXL/EFUtool/releases
@@ -29,12 +29,13 @@ Options:
     -s        : print EFU file statistics/info
     -p        : suppress progress indication (for logging to file)
     -a        : save the used include/exclude args in EFU file
+    -d <n>    : set maximum scan folder depth
 
 Notes:
-    o Multiple -i and -x switches can be used
-    o mask pattern can include * and ? for regular filemask syntax
-    o mask pattern can start with 'regex:' to use c# style regex matching
-    o -i and -x can also be used in statististics and filter modes
+    - Multiple -i and -x switches can be used
+    - mask pattern can include * and ? for regular filemask syntax
+    - mask pattern can start with 'regex:' to use c# style regex matching
+    - options -i and -x can also be used in statististics and filter modes
 
 Examples:
     Create a new EFU file with index of RootPath1 and RootPath2:
@@ -78,6 +79,7 @@ Examples:
         static ToolMode runmode = ToolMode.Default;
         internal static bool ShowProgress = true;
         internal static bool saveArgs = false;
+        internal static int depthLimit = -1;
 
         static int Main(string[] args)
         {
@@ -144,14 +146,12 @@ Examples:
                 return false;
             }
 
+            bool ok = true;
             for (int i = 0; i < args.Length; i++)
             {
                 string arg = args[i].ToLower();
                 if (Regex.IsMatch(arg, @"^[-/](\?|h)"))
-                {
-                    Console.WriteLine(Usage);
-                    return false;
-                }
+                    ok = false;
                 if (arg[0] == '-')
                 {
                     if (arg == "-i" && i < args.Length + 1) include.Add(args[++i]);
@@ -160,16 +160,24 @@ Examples:
                     else if (arg == "-s") runmode = ToolMode.Stats;
                     else if (arg == "-p") ShowProgress = false;
                     else if (arg == "-a") saveArgs = true;
-                    else
+                    else if (arg == "-d" && i < args.Length + 1)
                     {
-                        Console.WriteLine(Usage);
-                        return false;
+                        if (!int.TryParse(args[++i], out depthLimit))
+                            ok = false;
                     }
+                    else
+                        ok = false;
                 }
                 else
                 {
                     if (efuPath == null) efuPath = args[i];
                     else Roots.Add(args[i]);
+                }
+
+                if (!ok)
+                {
+                    Console.WriteLine(Usage);
+                    return false;
                 }
             }
 
@@ -185,7 +193,6 @@ Examples:
                 efuPath = $"{efuPath}.efu";
                 exists = true;
             }
-
 
             if (runmode == ToolMode.Default)
                 runmode = exists ? ToolMode.Update : ToolMode.Create;
