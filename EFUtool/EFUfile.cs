@@ -17,6 +17,7 @@ namespace EFUtool
         List<string> exclude = new List<string>();
         List<string> iargs = new List<string>();
         List<string> xargs = new List<string>();
+        List<string> rargs = new List<string>();
 
         int dirCount = 0;
         int fileCount = 0;
@@ -33,13 +34,15 @@ namespace EFUtool
         {
             EFUpath = path;
             roots = rootList;
-            iargs = included;
-            xargs = excluded;
             include = preparePatterns(included);
             exclude = preparePatterns(excluded);
+
+            rargs = new List<string>(rootList);
+            iargs = included;
+            xargs = excluded;
         }
 
-        bool CheckRoots()
+        bool CheckRoots(bool abortMissing = true)
         {
             for (int i = 0; i < roots.Count; i++)
             {
@@ -48,7 +51,7 @@ namespace EFUtool
                     path = path.TrimEnd('\\');
 
                 DirectoryInfo di = new DirectoryInfo(path);
-                if (!di.Exists)
+                if (!di.Exists && abortMissing)
                 {
                     Console.WriteLine($"Folder not found: {path}");
                     return false;
@@ -136,7 +139,7 @@ namespace EFUtool
         #region save/load args to EFU file
         public void SaveEFUArgs(StreamWriter efu, DateTime creationDate)
         {
-            string args = Util.Base64Encode(string.Join("\r", iargs) + "\n" + string.Join("\r", xargs));
+            string args = Util.Base64Encode($"{string.Join("\r", iargs)}\n{string.Join("\r", xargs)}\n{string.Join("\r", rargs)}");
             int attr = 1 + 2 + 4 + 64 + 256; // hidden, system, readonly, Device, Offline
             efu.WriteLine($"\"EFU:\\Args\\{args}\",0,{DateTime.Now.ToFileTime()},{creationDate.ToFileTime()},{attr}");
         }
@@ -154,8 +157,11 @@ namespace EFUtool
             DateTime mdate = DateTime.FromFileTime(long.Parse(m.Groups[2].Value));
             cdate = DateTime.FromFileTime(long.Parse(m.Groups[3].Value));
 
-            string[] includes = args.Split('\n')[0].Split(new char[] { '\r' }, StringSplitOptions.RemoveEmptyEntries);
-            string[] excludes = args.Split('\n')[1].Split(new char[] { '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] parts = args.Split('\n');
+            string[] includes = parts[0].Split(new char[] { '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] excludes = parts[1].Split(new char[] { '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] savedroots = parts.Length < 3 ? new string[0] : parts[2].Split(new char[] { '\r' }, StringSplitOptions.RemoveEmptyEntries);
+
             args = "";
             foreach(var i in includes) {
                 args += $"-i {i} ";
@@ -179,11 +185,25 @@ namespace EFUtool
                 }
             }
 
+            string sRoots = "";
+            foreach (var x in savedroots)
+            {
+                if (string.IsNullOrEmpty(x)) continue;
+                sRoots += $"{x}\n";
+                if (!rargs.Contains(x, StringComparer.InvariantCultureIgnoreCase)) rargs.Add(x);
+                if (load)
+                {
+                    if (!roots.Contains(x, StringComparer.InvariantCultureIgnoreCase))
+                        roots.Add(x);
+                }
+            }
+
             if (string.IsNullOrEmpty(args)) args = "(none)";
+            if (string.IsNullOrEmpty(sRoots)) sRoots = "(none)";
             //string ignored = load ? "" : " [ignored]";
             Console.WriteLine($"  Created on {cdate}, last modified on {mdate}");
-            Console.WriteLine($"  Stored args: {args}");
-
+            Console.WriteLine($"  Stored roots: {sRoots.Trim().Replace("\n", "\n               ")}");
+            Console.WriteLine($"  Stored args : {args}");
             return true;
         }
 
@@ -251,6 +271,8 @@ namespace EFUtool
 
             Console.WriteLine($"Updating EFU file: {Path.GetFileName(EFUpath)}");
             bool saveArgs = RestoreSavedArgs(true, out DateTime created);
+
+            CheckRoots(false);  // check saved roots, continue even if don't exist
 
             Console.WriteLine($"\nScanning current EFU index");
             EFULoad();
