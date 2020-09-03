@@ -139,7 +139,10 @@ namespace EFUtool
         #region save/load args to EFU file
         public void SaveEFUArgs(StreamWriter efu, DateTime creationDate)
         {
-            string args = Util.Base64Encode($"{string.Join("\r", iargs)}\n{string.Join("\r", xargs)}\n{string.Join("\r", rargs)}");
+            string args = $"{string.Join("\r", iargs)}\n{string.Join("\r", xargs)}\n{string.Join("\r", rargs)}";
+            if (Program.depthLimit > 0) args += $"\n{Program.depthLimit}";
+            args = Util.Base64Encode(args);
+
             int attr = 1 + 2 + 4 + 64 + 256; // hidden, system, readonly, Device, Offline
             efu.WriteLine($"\"EFU:\\Args\\{args}\",0,{DateTime.Now.ToFileTime()},{creationDate.ToFileTime()},{attr}");
         }
@@ -161,6 +164,7 @@ namespace EFUtool
             string[] includes = parts[0].Split(new char[] { '\r' }, StringSplitOptions.RemoveEmptyEntries);
             string[] excludes = parts[1].Split(new char[] { '\r' }, StringSplitOptions.RemoveEmptyEntries);
             string[] savedroots = parts.Length < 3 ? new string[0] : parts[2].Split(new char[] { '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            int maxDepth = parts.Length < 4 ? -1 : int.Parse(parts[3]);
 
             args = "";
             foreach(var i in includes) {
@@ -185,6 +189,12 @@ namespace EFUtool
                 }
             }
 
+            if (maxDepth > 0)
+            {
+                args += $"-d {maxDepth} ";
+                if (load && Program.depthLimit < 0) Program.depthLimit = maxDepth;
+            }
+
             string sRoots = "";
             foreach (var x in savedroots)
             {
@@ -202,8 +212,8 @@ namespace EFUtool
             if (string.IsNullOrEmpty(sRoots)) sRoots = "(none)";
             //string ignored = load ? "" : " [ignored]";
             Console.WriteLine($"  Created on {cdate}, last modified on {mdate}");
-            Console.WriteLine($"  Stored roots: {sRoots.Trim().Replace("\n", "\n               ")}");
-            Console.WriteLine($"  Stored args : {args}");
+            Console.WriteLine($"  Stored  args: {args}");
+            Console.WriteLine($"  Stored roots: {sRoots.Trim().Replace("\n", "\n                ")}");
             return true;
         }
 
@@ -270,7 +280,7 @@ namespace EFUtool
             if (!CheckRoots()) return 2;
 
             Console.WriteLine($"Updating EFU file: {Path.GetFileName(EFUpath)}");
-            bool saveArgs = RestoreSavedArgs(true, out DateTime created);
+            RestoreSavedArgs(true, out DateTime created);
 
             CheckRoots(false);  // check saved roots, continue even if don't exist
 
@@ -284,7 +294,7 @@ namespace EFUtool
             string newEFU = Path.ChangeExtension(EFUpath, ".tmp");
             StreamWriter swEFU = new StreamWriter(newEFU, false, Encoding.UTF8, 65536);
             swEFU.WriteLine("Filename,Size,Date Modified,Date Created,Attributes");
-            if (saveArgs || Program.saveArgs)
+            if (Program.saveArgs)
                 SaveEFUArgs(swEFU, created);
 
             Console.WriteLine($"Reindexing unchanged folders");
@@ -350,7 +360,7 @@ namespace EFUtool
         public int Filter()
         {
             Console.WriteLine($"Filtering EFU file: {Path.GetFileName(EFUpath)}");
-            bool saveArgs = RestoreSavedArgs(false, out DateTime created);
+            RestoreSavedArgs(false, out DateTime created);
 
             if (roots.Count > 0)
                 exclude.AddRange(preparePatterns(roots));       // treat Roots as exclude
@@ -365,7 +375,7 @@ namespace EFUtool
             string newEFU = Path.ChangeExtension(EFUpath, ".tmp");
             StreamWriter swEFU = new StreamWriter(newEFU, false, Encoding.UTF8, 65536);
             swEFU.WriteLine("Filename,Size,Date Modified,Date Created,Attributes");
-            if (saveArgs || Program.saveArgs)
+            if (Program.saveArgs)
                 SaveEFUArgs(swEFU, created);
 
             Console.WriteLine($"Applying filter");

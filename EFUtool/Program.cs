@@ -14,7 +14,7 @@ namespace EFUtool
 
     class Program
     {
-        static Version version = new Version(1, 2, 0);
+        static Version version = new Version(1, 2, 1);
 
         const string Usage = @"Source Code: https://github.com/zybexXL/EFUtool
     Updates: https://github.com/zybexXL/EFUtool/releases
@@ -27,8 +27,8 @@ Options:
     -x <mask> : exclude files/dir mask
     -f        : filter EFU file (no folder update/scan)
     -s        : print EFU file statistics/info
-    -p        : suppress progress indication (for logging to file)
-    -a        : don't save the used include/exclude args in EFU file
+    -np       : no progress indication (for logging to file)
+    -na       : no-args, don't save the command-line args in EFU file
     -d <n>    : set maximum scan folder depth
 
 Notes:
@@ -158,8 +158,8 @@ Examples:
                     else if (arg == "-x" && i < args.Length + 1) exclude.Add(args[++i]);
                     else if (arg == "-f") runmode = ToolMode.Filter;
                     else if (arg == "-s") runmode = ToolMode.Stats;
-                    else if (arg == "-p") ShowProgress = false;
-                    else if (arg == "-a") saveArgs = false;
+                    else if (arg == "-np") ShowProgress = false;
+                    else if (arg == "-na") saveArgs = false;
                     else if (arg == "-d" && i < args.Length + 1)
                     {
                         if (!int.TryParse(args[++i], out depthLimit))
