@@ -43,16 +43,16 @@ For volumes/shares with millions of files Everything's Folder Indexing is much s
     -x <mask> : exclude files/dir mask
     -f        : filter EFU file (no folder update/scan)
     -s        : print EFU file statistics/info
-    -p        : suppress progress indication (for logging to file)
-    -a        : save the used include/exclude args in EFU file
+    -np       : no progress indication (for logging to file)
+    -na       : no-args, don't save the command-line args in EFU file
+    -d <n>    : set maximum scan folder depth
 ```
 
   - Multiple -i and -x switches can be used
   - mask pattern can include * and ? for regular filemask syntax
-  - mask pattern can start with '**regex:**' to use c# style regex matching
-  - -i and -x can also be used in statististics and filter modes
-  - -a option allows you to update the EFU using the saved args
-  
+  - mask pattern can start with 'regex:' to use c# style regex matching
+  - options -i and -x can also be used in statististics and filter modes
+    
 <br>
 
 **Examples**
@@ -68,7 +68,7 @@ Create a new EFU file with index of RootPath1, excluding 'Users' folder:
 <br>
 
 
-*Note that any include/exclude options provided during EFU creation should still be used when updating that EFU, to prevent the excluded items from being added back*
+*Note that any include/exclude options provided during EFU creation are saved into the EFU file, and will be reused when updating that EFU to prevent the excluded items from being added back. However if you use -na option the options are not preserved so you need to provide them again when updating an EFU.*
 
 <br>
 
