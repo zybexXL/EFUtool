@@ -20,7 +20,7 @@ namespace EFUtool
     Updates: https://github.com/zybexXL/EFUtool/releases
 
 Usage:
-    EFUtool <[path\]index.EFU> [<root1> ... <rootN>] [options]\n
+    EFUtool <[path\]index.EFU> [<root1> ... <rootN>] [options]
 
 Options:
     -i <mask> : include files/dir mask
